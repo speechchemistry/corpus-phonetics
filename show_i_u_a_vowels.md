@@ -1,3 +1,6 @@
+Plot the speaker's /i/, /u/, /a/ vowels
+---------------------------------------
+
 ```r
 # Point working directory to a folder where there are TextGrid and wav files (usually from forced alignment)
 knitr::opts_knit$set(root.dir = "C:\\Users\\Tim\\Documents\\Kera_NT\\actor_narrator_mark1_2_3_16")
