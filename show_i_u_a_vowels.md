@@ -1,5 +1,5 @@
-Plot the speaker's /i/, /u/, /a/ vowels
----------------------------------------
+Formant plot of /i/, /u/, /a/ for the speaker
+---------------------------------------------
 
 ```r
 # Point working directory to a folder where there are TextGrid and wav files (usually from forced alignment)
