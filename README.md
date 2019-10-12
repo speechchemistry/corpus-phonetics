@@ -6,5 +6,7 @@ Any high vowel causes all vowels to be high
 Kera has height dominance, so high vowels in the root will trigger left to right harmony and 
 high vowel suffixes will trigger right to left harmony. The domain for this harmony is the 
 morphological word. 
+
 mirk-a > (mír)(kɨ́:) ‘greet her (3sf)’ (Left-to-right) 
+
 ba:d-u > (bɨ:)(dù:) ‘wash him (3sm)’ (Right-to-left) 
