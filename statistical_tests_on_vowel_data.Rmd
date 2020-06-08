@@ -1,0 +1,113 @@
+---
+title: "Analysing the difference between long and short vowels: statistical tests"
+author: "Timothy Kempton"
+date: 2020-06-08
+output: 
+  html_document:
+    keep_md: true
+---
+This is the code that is used for the statistical analysis in Section 3.3. in the paper [Corpus Phonetics for Under Documented Languages](http://journals.linguisticsociety.org/proceedings/index.php/amphonology/article/view/4682/4312). This particular notebook is for investigating tokens of /i/ not in the harmony domain for Speaker AF. No statistically significant difference in F1 between short
+/i/ vowels and long /i/ vowels was found. A test on F2 is just added for completeness. For the other seven conditions the filenames below should be changed. 
+```{r setup}
+# Point working directory to a folder where there the vowel data has been saved for the particular speaker
+knitr::opts_knit$set(root.dir = "/home/tim/Downloads/speakerAF_mark1_2_3_4_14_16")
+```
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(readr)
+```
+
+Load in list of loan words
+
+```{r message=FALSE, warning=FALSE}
+loan_words_tbl <- read_tsv("loan_words_to_exclude.txt")
+loan_words <- pull(loan_words_tbl,loan_word)
+loan_words
+```
+
+Remove these loan words as well as suspicious data points (where the formant tracker failed or where we have suspected elision). This particular example notebook investigates tokens of /i/ not in the harmony domain. For other vowel data, change the filename below.
+
+```{r message=FALSE, warning=FALSE}
+highvowel <- read_tsv("i_all_durations_normal.tsv") # CHANGE THIS FOR OTHER VOWEL DATA e.g. i_all_durations_harmony.tsv
+# remove all formant values that are zero (where formant tracker got confused), low energy and loan words
+highvowel_trimmed <- highvowel %>% filter(F1 != 0) %>% filter(F2 != 0) %>% filter(RMS > 60) %>% filter(!(word_label %in% loan_words))
+highvowel_long <- highvowel_trimmed %>% 
+   filter((end-start) > 71) # the reason this numbers are not round numbers is because earlier floating point 
+highvowel_short <- highvowel_trimmed %>% # arithmetic was not rounded
+   filter((end-start) > 39 & (end-start) < 51  )
+```
+
+Plot the trimmed down set of tokens as an interactive formant plot. This is a visual way of checking the difference between the short and long vowels which is formalised as a statistical test below.
+
+```{r}
+highvowel_all <- bind_rows("long" = highvowel_long, "short" = highvowel_short, .id = "duration")
+##Plot on a formant chart
+p<- highvowel_all %>%
+   ggplot(aes(x=F2,y=F1,color=duration,text = paste("Word:",word_label,"\nPosition in word",round(position_in_word,2)*100,"%\nFile:", bundle, "\nTime(s):",round((start+times_rel)/1000,2),"\nEnergy:",round(RMS,2))))+
+   geom_text(aes(label = labels))+
+   xlim(3000, 0)+ylim(1000,0)+xlab("F2(Hz)")+ylab("F1(Hz)")
+ggplotly(p, tooltip = "text") # if you just run ggplotly(p) it will include the redundant hover text
+```
+List durations (in ms) of all the tokens as a sanity check for the duration categories:
+
+Short should be durations of 30ms and 40ms 
+
+```{r}
+highvowel_short$end-highvowel_short$start
+```
+
+Long should be over 70 ms
+
+```{r}
+highvowel_long$end-highvowel_long$start
+```
+
+### Testing for a difference in F1
+
+We need to test for normality before using a t-test.
+
+```{r}
+# if p is low then data is unlikely to be normally distributed
+shapiro.test(highvowel_short$F1)
+```
+```{r}
+# if p is low then data is unlikely to be normally distributed
+shapiro.test(highvowel_long$F1)
+```
+
+If p<0.05 for at least one distribution then we reject the null hypothesis (that the data is normally distributed). Then it is safer to run a Wilcoxon rank sum test (equivalent to the Mann-Whitney test).
+
+```{r}
+## check difference for F1
+## if p-value is less than 0.05 is could be said to be different distributions but matt said it
+## the p-value should really be less than 0.01 for a robust finding.
+#t.test(pull(highvowel_short,F1),pull(highvowel_long,F1))
+wilcox.test(highvowel_short$F1,highvowel_long$F1)
+```
+**This above p-value is the main finding of this notebook. If p<0.01 there is a statistically significant difference between the distributions.**
+
+### Testing for a difference in F2
+
+We need to test for normality before using a t-test. 
+
+```{r}
+# if p is low then data is unlikely to be normally distributed
+shapiro.test(highvowel_short$F2)
+```
+
+```{r}
+# if p is low then data is unlikely to be normally distributed
+shapiro.test(highvowel_long$F2)
+```
+
+```{r}
+## check difference for F2
+## if p-value is less than 0.05 is could be said to be different distributions but matt said it
+## the p-value should really be less than 0.01 for a robust finding.
+#t.test(highvowel_short$F2,highvowel_long$F2)
+wilcox.test(highvowel_short$F2,highvowel_long$F2)
+```
+If p<0.01 there is a statistically significant difference between the distributions.
