@@ -49,8 +49,9 @@ p<- highvowel_all %>%
    ggplot(aes(x=F2,y=F1,color=duration,text = paste("Word:",word_label,"\nPosition in word",round(position_in_word,2)*100,"%\nFile:", bundle, "\nTime(s):",round((start+times_rel)/1000,2),"\nEnergy:",round(RMS,2))))+
    geom_text(aes(label = labels))+
    xlim(3000, 0)+ylim(1000,0)+xlab("F2(Hz)")+ylab("F1(Hz)")
-ggplotly(p, tooltip = "text") # if you just run ggplotly(p) it will include the redundant hover text
+p # add the following line for an interactive graph: ggplotly(p, tooltip = "text")
 ```
+
 List durations (in ms) of all the tokens as a sanity check for the duration categories:
 
 Short should be durations of 30ms and 40ms 
