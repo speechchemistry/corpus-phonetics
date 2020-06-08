@@ -1,19 +1,21 @@
 ---
-title: "Extract all the vowels in the corpus"
+title: "Extract Kera vowel data"
 author: "Timothy Kempton"
 date: 2020-06-05
 output: 
   html_document:
     keep_md: true
-editor_options: 
-  chunk_output_type: inline
 ---
-```{r setup}
+ 
+This notebook uses EMU to extract acoustic vowel data from the Kera corpus. The data is written to a text file, alongside a diagnostic formant plot.
+
+```r
 # Point working directory to a folder where there are TextGrid and wav files (usually from forced alignment)
 knitr::opts_knit$set(root.dir = "/home/tim/Downloads/speakerAF_mark1_2_3_4_14_16")
 ```
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 library(emuR)
 library(ggplot2)
 library(dplyr)
@@ -21,7 +23,8 @@ library(readr)
 library(plotly)
 ```
 Create the EMU database from the TextGrid and wav files. 
-```{r message=FALSE, warning=FALSE, results='hide'}
+
+```r
 # Set up database
 path2directory = file.path(getwd())
 convert_TextGridCollection(path2directory, dbName = "actor", targetDir = tempdir())
@@ -32,14 +35,16 @@ autobuild_linkFromTimes(db_handle, superlevelName = "word", sublevelName = "phon
 ```
 
 Read in the Hayes features
-```{r}
+
+```r
 # Note that this file is just a combination of the files at
 # https://github.com/speechchemistry/phonemic-analysis/tree/master/resources/common
 features <- read.table("big_hayes_phone_list_utf8nfc.tsv",sep="\t", header=TRUE,encoding="UTF-8")
 ```
 
 Define the function for returning phones that match a particular feature
-```{r}
+
+```r
 # Function `phoneList` modified by Tim Kempton from an original function 
 # `phonemeList` (c) Dave Lovell (MIT license) 
 # Produces a character vector of phones based on the class specified by the input which is a string
@@ -57,7 +62,8 @@ phoneList <- function(type,value=NULL)
 ```
 
 Get a list of phones of features useful to our investigation
-```{r}
+
+```r
 # Get a list of IPA non_high_vowels
 syllabic <- phoneList('syllabic',1)
 non_syllabic <- phoneList('syllabic',-1)
@@ -65,7 +71,8 @@ non_high_phones <- phoneList('high',-1)
 non_high_vowel_intersection <- intersect(syllabic, non_high_phones)
 ```
 Convert these lists into EMU label groups 
-```{r}
+
+```r
 # Define an EMU label group called pg_vowel (stands for phonological vowel)
 add_attrDefLabelGroup(db_handle,levelName = "phone",attributeDefinitionName = "phone",labelGroupName = "pg_vowel", labelGroupValues = syllabic)
 # Define an EMU label group called pg_consonant (stands for phonological consonant)
@@ -74,12 +81,14 @@ add_attrDefLabelGroup(db_handle,levelName = "phone",attributeDefinitionName = "p
 add_attrDefLabelGroup(db_handle,levelName = "phone",attributeDefinitionName = "phone",labelGroupName = "non_high_vowel", labelGroupValues = non_high_vowel_intersection)
 ```
 Find all vowels in the corpus
-```{r}
+
+```r
 all_vowels <- query(db_handle, query = "[phone == pg_vowel]")
 seglist_in <- all_vowels
 ```
 Calculate the formants of the midpoints of those vowels
-```{r message=FALSE, warning=FALSE, results='hide'}
+
+```r
 # Calculate formants
 trackdata = get_trackdata(db_handle,
                           seglist = seglist_in,
@@ -92,7 +101,8 @@ trackdata_norm_midpoint = trackdata_norm %>% filter(times_norm > 0.49 & times_no
 trackdata_norm_midpoint <- rename(trackdata_norm_midpoint,F1=T1,F2=T2,F3=T3,F4=T4)
 ```
 Calculate the short-term power of the midpoints of those vowels (using root-mean-square amplitude)
-```{r message=FALSE, warning=FALSE, results='hide'}
+
+```r
 # we get the RMS values for adding to the existing formant values.
 rms_trackdata = get_trackdata(db_handle,
                                seglist = seglist_in,
@@ -107,7 +117,8 @@ rms_trackdata_norm_midpoint <- rename(rms_trackdata_norm_midpoint,RMS=T1)
 joined_trackdata_norm_midpoint <- full_join(trackdata_norm_midpoint,rms_trackdata_norm_midpoint)
 ```
 For each vowel, include the corresponding word where that vowel occured in
-```{r}
+
+```r
 # find the corresponding words of the phones of interest
 corresponding_words <- requery_hier(db_handle,seglist = seglist_in, level = "word", collapse = FALSE)
 # trim the dataframe so it's just the words, label and bundle (i.e. audio filename)
@@ -124,7 +135,8 @@ bound_also_words <- cbind(joined_trackdata_norm_midpoint,corresponding_words_tri
 # at this point there should be some sort of check that the data lines up
 ```
 Include an indication of where the vowel occured in the word (using a score of 0 to 1)
-```{r}
+
+```r
 # we need to indicate which part of the word contains the phone in case
 # there are multiple tokens of the same phones e.g. two tokens of [i]
 # in the same word. One way to do this is to calculate the proportion of the
@@ -133,11 +145,13 @@ with_col_position_in_word <- bound_also_words %>%
   mutate(position_in_word=((start+(end-start)/2)-word_start)/(word_end-word_start))
 ```
 Save all the vowel data that has been calculated
-```{r}
+
+```r
 write_tsv(with_col_position_in_word, "all_vowels_durations.tsv")
 ```
 Display a formant plot with colours indicating the RMS amplitude
-```{r}
+
+```r
 #Plot on a formant chart
 p <-with_col_position_in_word %>%
    filter((end - start)>0) %>%
@@ -145,5 +159,14 @@ p <-with_col_position_in_word %>%
    geom_text(aes(label = labels))+
    xlim(3000, 0)+ylim(1000,0)+xlab("F2(Hz)")+ylab("F1(Hz)")
 p
+```
+
+```
+## Warning: Removed 2 rows containing missing values (geom_text).
+```
+
+![](extract_kera_vowel_data_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+```r
 #ggplotly(p, tooltip = "text") # uncomment this for an interactive graph
 ```
