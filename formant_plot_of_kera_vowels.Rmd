@@ -6,7 +6,7 @@ output:
   html_document:
     keep_md: true
 ---
-This is the code that is used to produce Figure 3 (p7) in the paper [Corpus Phonetics for Under Documented Languages](http://journals.linguisticsociety.org/proceedings/index.php/amphonology/article/view/4682/4312). It uses data produced by the notebook "extract_kera_vowel_data".
+This is the code that is used to produce Figre 2 (p6) Figure 3 (p7) in the paper [Corpus Phonetics for Under Documented Languages](http://journals.linguisticsociety.org/proceedings/index.php/amphonology/article/view/4682/4312). It uses data produced by the notebook "extract_kera_vowel_data".
 ```{r setup}
 # Point working directory to a folder containing the vowel data
 knitr::opts_knit$set(root.dir = "/home/tim/Downloads/speakerAF_mark1_2_3_4_14_16")
@@ -85,13 +85,28 @@ if (os=="Windows") { # R in Windows has a problem with unicode so we have to han
                      # order for windows and not assign the names of the unicode characters. 
                      # This should now work on Rstudio in windows but not knitr in windows
   kera_vowel_colour_scale <-
-    scale_colour_manual(values=c("#7268E0","#F17735","#27CD8D","#DC6486","#C6C018","#0084A6"))
+    scale_colour_manual(values=c("#7268E0","#FF8745","#27CD8D","#DC6486","#C6C018","#0084A6"))
 } else {             # This should work on Linux
-  kera_vowel_colour_scale <- scale_colour_manual(values=c("ɔ" = "#7268E0", "ɛ" = "#F17735", "ɨ" = "#27CD8D", "a" = "#DC6486", "i" = "#C6C018", "u" = "#0084A6"))
+  kera_vowel_colour_scale <- scale_colour_manual(values=c("ɔ" = "#7268E0", "ɛ" = "#FF8745", "ɨ" = "#27CD8D", "a" = "#DC6486", "i" = "#C6C018", "u" = "#0084A6"))
 }
 ```
+Graph showing Duration against F1 for Figure 2. This graph is slightly 
+different from the publication because of the different pre-processing used to
+remove datapoints but the means still match within the confidence levels.
+```{r}
+common_vowels%>%
+     filter(Vowel=="a"|Vowel=="ɛ"|Vowel=="ɔ") %>%
+     filter((end-start) > 39 ) %>% 
+     ggplot(aes(end-start,F1,colour=Vowel))+
+     theme_bw() +
+     geom_text(aes(label = Vowel)) + stat_smooth() + 
+     coord_cartesian(ylim=c(700,370),xlim=c(30,100)) + # using coord_cartesian ensures that the data is not subsetted when zooming in (like it is with xlim, ylim on their own)
+     scale_y_reverse() +
+     kera_vowel_colour_scale +
+     xlab("Duration (ms)")+ylab("F1 (Hz)") 
+```
 
-Calculate formant plot
+Formant plot for Figure 3
 
 ```{r}
 invowel_all <- bind_rows("Long" = invowel_long, "Short" = invowel_short, .id = "duration")
