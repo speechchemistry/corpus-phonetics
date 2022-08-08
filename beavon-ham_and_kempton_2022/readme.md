@@ -1,1 +1,1 @@
-This publication is in press and the executable notebook version of the paper will be appearing here shortly. 
+This publication is in press. The basic executable notebook is now included here but the rest of the resources will be appearing here shortly. 
