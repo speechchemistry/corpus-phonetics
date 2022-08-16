@@ -1,0 +1,1 @@
+This folder is empty until the main_rendering_script.sh has been exectuted. At that point a PDF of the final paper should appear in this folder.
