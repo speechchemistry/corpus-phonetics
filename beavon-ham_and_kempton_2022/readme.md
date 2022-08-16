@@ -1,1 +1,3 @@
-This publication is in press. The basic executable notebook is now included here but the rest of the resources will be appearing here shortly. 
+This publication is in press. More information will be available once it is published (I expect this should be before the end of 2022). This respository contains the paper in as an executable notebook, so that our analysis can be checked and reproduced. The executable notebook uses the R programming language. The filename is `WOCAL2021_submission.Rmd` and can be found at in the `src` folder.
+
+There are two main ways of using the executable notebook. Firstly you can load and execute it in RStudio (this should work on Windows, Linux, and Mac). Secondly you can generate a PDF of our paper from the executable notebook. This has only been tested on Ubuntu Linux (v20.04 and v22.04). You can use the script `main_rendering_script.sh` in the `src` folder. This should generate the final paper and place it in the `doc` folder.
