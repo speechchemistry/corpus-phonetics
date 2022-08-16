@@ -1,0 +1,11 @@
+Required software:
+R
+
+Required packages within R:
+Tidyverse: ggplot2, dplyr, readr, forcats
+Other: emuR, ggpmisc, hqmisc
+
+Software for producing PDF (optional):
+Pandoc
+Xetex (e.g. in Ubuntu the packages: texlive, texlive-latex-extra, texlive-xetex, texlive-bibtex-extra, biber, texlive-humanities)
+
